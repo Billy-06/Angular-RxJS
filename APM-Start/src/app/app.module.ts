@@ -8,8 +8,8 @@ import { AppData } from './app-data';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { WelcomeComponent } from './home/welcome.component';
 import { PageNotFoundComponent } from './page-not-found.component';
+import { FooterComponent } from './footer/footer.component';
 
 @NgModule({
   imports: [
@@ -20,8 +20,8 @@ import { PageNotFoundComponent } from './page-not-found.component';
   ],
   declarations: [
     AppComponent,
-    WelcomeComponent,
-    PageNotFoundComponent
+    PageNotFoundComponent,
+    FooterComponent
   ],
   bootstrap: [AppComponent]
 })
