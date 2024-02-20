@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 
-import { catchError, Observable, tap, throwError } from 'rxjs';
+import { catchError, combineLatest, map, Observable, tap, throwError } from 'rxjs';
 
 import { Product } from './product';
+import { ProductCategoryService } from '../product-categories/product-category.service';
 
 @Injectable({
   providedIn: 'root'
@@ -11,16 +12,35 @@ import { Product } from './product';
 export class ProductService {
   private productsUrl = 'api/products';
   private suppliersUrl = 'api/suppliers';
-  
-  constructor(private http: HttpClient) { }
 
-  getProducts(): Observable<Product[]> {
-    return this.http.get<Product[]>(this.productsUrl)
+
+  // Declare reactive product observable
+  products$ = this.http.get<Product[]>(this.productsUrl)
       .pipe(
-        tap(data => console.log('Products: ', JSON.stringify(data))),
-        catchError(this.handleError)
-      );
-  }
+      map(products => products.map( item => ({
+        ...item,
+        price: item.price ? item.price * 1.5 : 0,
+        searchKey: [item.productName]
+      } as Product))),
+      // tap(data => console.log('Products: ', JSON.stringify(data))),
+      catchError(this.handleError)
+  );
+          
+  productsWithCategories$ = combineLatest([this.products$, this.productCatService.productCategories$]).pipe(
+    tap(([products, categories]) => console.log(
+      `Tapped Products: ${products}, Tapped categories: ${categories}`
+    )),
+    map(([products, categories]) => products.map( item => ({
+        ...item,
+        price: item.price ? item.price * 1.5 : 0,
+        category: categories.find( cat => cat.id === item.categoryId )?.name,
+        searchKey: [item.productName]
+      } as Product))),
+    tap(data => console.log('Products: ', JSON.stringify(data))),
+    catchError(this.handleError)
+  )
+  
+  constructor(private http: HttpClient, private productCatService: ProductCategoryService) { }
 
   private fakeProduct(): Product {
     return {
