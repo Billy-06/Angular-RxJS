@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 
-import { catchError, combineLatest, map, Observable, tap, throwError } from 'rxjs';
+import { BehaviorSubject, catchError, combineLatest, map, Observable, tap, throwError } from 'rxjs';
 
 import { Product } from './product';
 import { ProductCategoryService } from '../product-categories/product-category.service';
@@ -12,7 +12,7 @@ import { ProductCategoryService } from '../product-categories/product-category.s
 export class ProductService {
   private productsUrl = 'api/products';
   private suppliersUrl = 'api/suppliers';
-
+  
 
   // Declare reactive product observable
   products$ = this.http.get<Product[]>(this.productsUrl)
@@ -22,7 +22,6 @@ export class ProductService {
         price: item.price ? item.price * 1.5 : 0,
         searchKey: [item.productName]
       } as Product))),
-      // tap(data => console.log('Products: ', JSON.stringify(data))),
       catchError(this.handleError)
   );
           
@@ -40,6 +39,22 @@ export class ProductService {
     catchError(this.handleError)
   )
   
+  private productSelectedSubject =  new BehaviorSubject<number>(0);
+  selectedProductId$ = this.productSelectedSubject.asObservable();
+
+  selectedProduct$ = combineLatest([
+    this.productsWithCategories$,
+    this.selectedProductId$
+  ]).pipe(
+    map(([products, prodId]) => products.find(product => prodId ? product.id === prodId : true )
+    ),
+    tap(prod => console.log(`Selected Product: ${prod}`))
+  )
+
+    selectedProductChangeDetector(prodId: number){
+      this.productSelectedSubject.next(prodId);
+    }
+
   constructor(private http: HttpClient, private productCatService: ProductCategoryService) { }
 
   private fakeProduct(): Product {

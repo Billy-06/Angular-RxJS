@@ -9,7 +9,8 @@ import { ProductService } from '../product.service';
 export class ProductListAltComponent {
   pageTitle = 'Products';
   errorMessage = '';
-  selectedProductId = 0;
+
+  selectedProductId$ = this.productService.selectedProductId$;
 
   // products$ = this.productService.products$.pipe(
   products$ = this.productService.productsWithCategories$.pipe(
@@ -24,6 +25,6 @@ export class ProductListAltComponent {
   constructor(private productService: ProductService) { }
 
   onSelected(productId: number): void {
-    console.log('Not yet implemented');
+    this.productService.selectedProductChangeDetector(productId);
   }
 }
